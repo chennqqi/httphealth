@@ -1,10 +1,16 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
+	"math/rand"
+	"net/http"
 	"os"
 	"time"
 
+	"github.com/chennqqi/goutils/netperf"
+
+	"github.com/NebulousLabs/fastrand"
 	"github.com/Sirupsen/logrus"
 	"github.com/chennqqi/goutils/consul"
 	"github.com/chennqqi/goutils/utils"
@@ -24,6 +30,19 @@ func main() {
 	reqD, _ := time.ParseDuration(cfg.ReqInterval)
 	stopChan := make(chan struct{})
 	var stop bool
+
+	go func() {
+		http.HandleFunc(consul.CONSUL_HEALTH_PATH,
+			func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				hostname, _ := os.Hostname()
+				fmt.Fprintf(w, "%v", hostname)
+				v := rand.Int() % 1024
+				x := fastrand.Bytes(v)
+				fmt.Fprintf(w, "%v:", hostname, hex.EncodeToString(x))
+			})
+		netperf.ListenAndServe(cfg.Health)
+	}()
 
 	go func() {
 		m := NewManager()
