@@ -1,9 +1,11 @@
 package main
 
 import (
-	"time"
-
 	"context"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/levigross/grequests"
@@ -28,12 +30,6 @@ func NewClient(target string, to time.Duration) *Client {
 	client.ctx = ctx
 	client.cancel = cancel
 
-	session := grequests.NewSession(&grequests.RequestOptions{
-		RequestTimeout: 2 * time.Second,
-		DialTimeout:    2 * time.Second,
-	})
-	client.session = session
-
 	return &client
 }
 
@@ -41,22 +37,39 @@ func (c *Client) Status() bool {
 	return !c.stop
 }
 
+const (
+	MaxIdleConnections int = 20
+	RequestTimeout     int = 5
+)
+
 func (c *Client) Run() {
 	ticker := time.NewTicker(c.to)
-	session := c.session
 
 	defer ticker.Stop()
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost: MaxIdleConnections,
+		},
+		Timeout: 3 * time.Second,
+	}
 
 FOR_LOOP:
 	for {
 		select {
 		case <-ticker.C:
-			resp, err := session.Get(c.target, nil)
+			req, _ := http.NewRequest("GET", c.target, nil)
+			resp, err := client.Do(req)
 			if err != nil {
-				logrus.Errorf("[%v] Get error: %v", c.target)
+				logrus.Errorf("[%v] Get error: %v", c.target, err)
 				break FOR_LOOP
 			}
-			defer resp.Close()
+
+			//to reuse http client
+			if resp.Body != nil {
+				io.Copy(ioutil.Discard, resp.Body)
+				resp.Body.Close()
+			}
 			if resp.StatusCode != 200 {
 				logrus.Errorf("[%v] response: %v", c.target, resp.StatusCode)
 				break FOR_LOOP
@@ -64,7 +77,7 @@ FOR_LOOP:
 
 		case <-c.ctx.Done():
 			logrus.Info("[%v] break by user", c.target)
-			break
+			break FOR_LOOP
 		}
 	}
 

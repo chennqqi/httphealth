@@ -32,16 +32,16 @@ func main() {
 	var stop bool
 
 	go func() {
-		http.HandleFunc(consul.CONSUL_HEALTH_PATH,
+		http.HandleFunc("/"+consul.CONSUL_HEALTH_PATH,
 			func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 				hostname, _ := os.Hostname()
 				fmt.Fprintf(w, "%v", hostname)
 				v := rand.Int() % 1024
 				x := fastrand.Bytes(v)
-				fmt.Fprintf(w, "%v:", hostname, hex.EncodeToString(x))
+				fmt.Fprintf(w, "%v: %v\n", hostname, hex.EncodeToString(x))
 			})
-		netperf.ListenAndServe(cfg.Health)
+		netperf.ListenAndServe(cfg.HealthHost)
 	}()
 
 	go func() {
