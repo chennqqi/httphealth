@@ -56,7 +56,7 @@ func main() {
 			}
 			targets := make([]string, len(catlogs))
 			for k, cat := range catlogs {
-				req := fmt.Sprintf("http://%v:%d", cat.Address, cat.ServicePort)
+				req := fmt.Sprintf("http://%v:%d/%v", cat.Address, cat.ServicePort, consul.CONSUL_HEALTH_PATH)
 				targets[k] = req
 			}
 			time.Sleep(listD)
