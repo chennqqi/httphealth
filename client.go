@@ -76,7 +76,7 @@ FOR_LOOP:
 			}
 
 		case <-c.ctx.Done():
-			logrus.Info("[%v] break by user", c.target)
+			logrus.Infof("[%v] break by user", c.target)
 			break FOR_LOOP
 		}
 	}
