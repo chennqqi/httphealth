@@ -41,7 +41,7 @@ func main() {
 				x := fastrand.Bytes(v)
 				fmt.Fprintf(w, "%v:", hostname, hex.EncodeToString(x))
 			})
-		netperf.ListenAndServe(cfg.Health)
+		netperf.ListenAndServe(cfg.HealthHost)
 	}()
 
 	go func() {
