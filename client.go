@@ -2,7 +2,8 @@ package main
 
 import (
 	"time"
-
+	"io"
+	"io/ioutil"
 	"context"
 
 	"github.com/Sirupsen/logrus"
@@ -53,10 +54,13 @@ FOR_LOOP:
 		case <-ticker.C:
 			resp, err := session.Get(c.target, nil)
 			if err != nil {
-				logrus.Errorf("[%v] Get error: %v", c.target)
+				logrus.Errorf("[%v] Get error: %v", c.target, err)
 				break FOR_LOOP
 			}
-			defer resp.Close()
+			if resp.Body!=nil{
+				io.Copy(ioutil.Discard, resp.Body)
+			}
+			resp.Close()
 			if resp.StatusCode != 200 {
 				logrus.Errorf("[%v] response: %v", c.target, resp.StatusCode)
 				break FOR_LOOP
@@ -64,7 +68,7 @@ FOR_LOOP:
 
 		case <-c.ctx.Done():
 			logrus.Info("[%v] break by user", c.target)
-			break
+			break FOR_LOOP
 		}
 	}
 

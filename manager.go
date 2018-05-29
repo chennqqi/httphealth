@@ -23,13 +23,13 @@ func (m *Manager) Refresh(targes []string) {
 	for _, t := range targes {
 		c, exist := m.clients[t]
 		if !exist {
-			logrus.Info("[%v] pushed new", t)
+			logrus.Infof("[%v] pushed new", t)
 			nc := NewClient(t, m.to)
 			go nc.Run()
 			m.clients[t] = nc
 		} else if !c.Status() {
 			nc := NewClient(t, m.to)
-			logrus.Info("[%v] pushed old", t)
+			logrus.Infof("[%v] pushed old", t)
 			go nc.Run()
 			m.clients[t] = nc
 		}
