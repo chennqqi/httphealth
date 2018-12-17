@@ -62,6 +62,7 @@ func main() {
 			time.Sleep(listD)
 			m.Refresh(targets)
 		}
+		close(stopChan)
 	}()
 
 	app.Wait(func(os.Signal) {
