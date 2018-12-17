@@ -7,7 +7,7 @@ ARG app_name=httphealth
 COPY . /go/src/github.com/chennqqi/httphealth
 #RUN apk --update add --no-cache clamav ca-certificates
 RUN apk --update add --no-cache ca-certificates
-RUN apk --update add --no-cache -t .build-deps \
+RUN apk --update add --no-cache -t .build-deps  musl-dev \
                     git \
                     go \
   && echo "Building ${app_name} Go binary..." \
