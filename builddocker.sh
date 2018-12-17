@@ -1,4 +1,4 @@
 #!/bin/bash
 
 go build -v -ldflags "-s -w" 
-sudo docker build -t 'sort/httphealth' -f Dockerfile  .
+sudo docker build -t 'sort/httphealth' -f Dockerfile.local  .
